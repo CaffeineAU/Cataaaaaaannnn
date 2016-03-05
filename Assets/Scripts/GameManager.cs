@@ -11,52 +11,39 @@ namespace Completed
     {
 
         public static GameManager instance = null;              //Static instance of GameManager which allows it to be accessed by any other script.
-        private BoardManager boardScript;                       //Store a reference to our BoardManager which will set up the level.
+        public BoardManager boardScript;                       //Store a reference to our BoardManager which will set up the level.
         private int level = 3;                                  //Current level number, expressed in game as "Day 1".
         private InputField IPAddressText;
 
 
-        public int RingNumber;
+        public static int RingNumber;
         public int PlayerAppearance;
+
+
+        public void OnEnable()
+        {
+            Debug.Log("Getting instance");
+            if (instance == null)
+                instance = this;
+            else if (instance != this)
+            {
+            Debug.Log("Destroying instance");
+                Destroy(gameObject);
+                return;
+            }
+        }
+
 
         //Awake is always called before any Start functions
         void Awake()
         {
-            //Check if instance already exists
-            if (instance == null)
-
-                //if not, set instance to this
-                instance = this;
-
-            //If instance already exists and it's not this:
-            else if (instance != this)
-
-                //Then destroy this. This enforces our singleton pattern, meaning there can only ever be one instance of a GameManager.
-                Destroy(gameObject);
-
-            //Sets this to not be destroyed when reloading scene
-            //DontDestroyOnLoad(this);
+            DontDestroyOnLoad(this);
 
             //Get a component reference to the attached BoardManager script
-            //boardScript = GetComponentInChildren<BoardManager>();
-            //Debug.Log("got board manager object: " + boardScript.name);
-
-            //Debug.Log("Getting IP address object");
-            //IPAddressText = GameObject.Find("HostAddressInputField").GetComponent<InputField>();
-            //Debug.Log("Got IP address object: " + IPAddressText.text);
-
-
-            //Call the InitGame function to initialize the first level 
-            //InitGame();
-
-
             GameObject.Find("RingNumberInputField").GetComponent<InputField>().text = PlayerPrefs.GetInt("RingNumberInputField").ToString();
             RingNumberInputFieldListener(PlayerPrefs.GetInt("RingNumberInputField").ToString());
             GameObject.Find("RingNumberInputField").GetComponent<InputField>().onEndEdit.AddListener(RingNumberInputFieldListener);
 
-            //GameObject.Find("AppearanceDropdown").GetComponent<Dropdown>().value = PlayerPrefs.GetInt("PlayerAppearance");
-            //AppearanceSelectedListener(PlayerPrefs.GetInt("PlayerAppearance"));
-            //GameObject.Find("AppearanceDropdown").GetComponent<Dropdown>().onValueChanged.AddListener(AppearanceSelectedListener);
         }
 
         public override void OnServerSceneChanged(string sceneName)
@@ -65,7 +52,6 @@ namespace Completed
             {
                 //Call the InitGame function to initialize the first level 
                 InitGame();
-
             }
             base.OnServerSceneChanged(sceneName);
         }
@@ -76,8 +62,10 @@ namespace Completed
             Debug.Log("Listened to change RingNumberInputField value " + rings); //prints "Listened to change on value 3.14"
             PlayerPrefs.SetInt("RingNumberInputField", RingNumber);
             PlayerPrefs.Save();
-            Debug.Log("Saved new RingNumberInputField " + rings + " in prefs"); //prints "Listened to change on value 3.14"
-        }
+            Debug.Log("Saved new RingNumberInputField " + RingNumber + " in prefs"); //prints "Listened to change on value 3.14"
+             boardScript = GetComponentInChildren<BoardManager>();
+            boardScript.rings = RingNumber;
+       }
 
         void AppearanceSelectedListener(int appearance)
         {
@@ -96,7 +84,7 @@ namespace Completed
             boardScript = GetComponentInChildren<BoardManager>();
             Debug.Log("got board manager object: " + boardScript.name);
             Debug.Log("Setting up board with " + RingNumber + " rings");
-            boardScript.SetupScene();
+            boardScript.SetupScene(RingNumber);
 
 
         }
@@ -128,6 +116,7 @@ namespace Completed
         {
             Debug.Log("Starting host");
             StartHost();
+
         }
 
         public void DisconnectGame()

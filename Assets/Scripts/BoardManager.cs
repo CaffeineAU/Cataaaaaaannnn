@@ -15,7 +15,16 @@ namespace Completed
             Desert,
             Forest,
             Mountain,
-            Pasture
+            Pasture,
+            Hill, 
+            Field,
+            Border0,
+            Border1,
+            Border2,
+            Border3,
+            Border4,
+            Border5,
+
         }
 
         public float tileSideLength;
@@ -31,16 +40,20 @@ namespace Completed
 
         private Transform boardHolder;                                          //A variable to store a reference to the transform of our Board object.
         public List<GameObject> Tiles = new List<GameObject>();   //A list of possible locations to place players.
+        public List<GameObject> BorderTiles = new List<GameObject>();   //A list of possible locations to place players.
+
         private List<Vector3> TileLocations = new List<Vector3>();   //A list of possible locations to place players.
+        private List<Vector3> BorderTileLocations = new List<Vector3>();   //A list of possible locations to place players.
         private int numTiles;
 
         //Clears our list gridPositions and prepares it to generate a new board.
         void InitialiseList()
         {
-            Debug.Log("Rings : " + rings);
+
             TileOffsets.Clear();
+            BorderTileOffsets.Clear();
 
-            for (var i = 0; i < rings; i++)
+            for (var i = 0; i < rings+1; i++)
             {
                 for (var j = -i; j <= i; j++)
                 {
@@ -50,24 +63,15 @@ namespace Completed
                         {
                             if (Math.Abs(j) + Math.Abs(k) + Math.Abs(l) == i * 2 && j + k + l == 0)
                             {
-                                TileOffsets.Add(new Vector3(j, k, l));
-                            }
-                        }
-                    }
-                }
+                                if (i == rings)
+                                {
+                                    BorderTileOffsets.Add(new Vector4(j, k, l));
 
-            }
-            for (var i = rings; i < rings+1; i++)
-            {
-                for (var j = -i; j <= i; j++)
-                {
-                    for (var k = -i; k <= i; k++)
-                    {
-                        for (var l = -i; l <= i; l++)
-                        {
-                            if (Math.Abs(j) + Math.Abs(k) + Math.Abs(l) == i * 2 && j + k + l == 0)
-                            {
-                                BorderTileOffsets.Add(new Vector3(j, k, l));
+                                }
+                                else
+                                {
+                                    TileOffsets.Add(new Vector3(j, k, l));
+                                }
                             }
                         }
                     }
@@ -78,12 +82,20 @@ namespace Completed
 
             //Clear our list gridPositions.
             TileLocations.Clear();
+            BorderTileLocations.Clear();
 
             foreach (var item in TileOffsets)
             {
                 Vector3 newlocation = HexCoordinateToCartesian(item, tileSideLength);
                 TileLocations.Add(newlocation);
                 Debug.Log("Added location " + newlocation);
+            }
+
+            foreach (var item in BorderTileOffsets)
+            {
+                Vector3 newlocation = HexCoordinateToCartesian(item, tileSideLength);
+                BorderTileLocations.Add(newlocation);
+                Debug.Log("Added Border location " + newlocation);
             }
 
         }
@@ -115,6 +127,21 @@ namespace Completed
                 //Set the parent of our newly instantiated object instance to boardHolder, this is just organizational to avoid cluttering hierarchy.
                 instance.transform.SetParent(boardHolder);
             }
+
+            //foreach (Vector3 location in BorderTileLocations)
+            //{
+            //    float angle = Quaternion.FromToRotation(Vector3.back, location).eulerAngles.y;
+            //    Debug.Log("Location is " + location + " Angle is " + angle);
+
+            //    GameObject toInstantiate = BorderTiles[(int)(angle / 60f)% BorderTiles.Count];
+
+            //    //Instantiate the GameObject instance using the prefab chosen for toInstantiate at the Vector3 corresponding to current grid position in loop, cast it to GameObject.
+            //    GameObject instance =
+            //        Instantiate(toInstantiate, location, Quaternion.identity) as GameObject;
+            //    Debug.Log("Added border tile " + toInstantiate.name + " at " + location.ToString());
+            //    //Set the parent of our newly instantiated object instance to boardHolder, this is just organizational to avoid cluttering hierarchy.
+            //    instance.transform.SetParent(boardHolder);
+            //}
 
         }
 
@@ -158,10 +185,9 @@ namespace Completed
 
 
         //SetupScene initializes our level and calls the previous functions to lay out the game board
-        public void SetupScene()
+        public void SetupScene(int ringcount)
         {
-
-            rings = PlayerPrefs.GetInt("RingNumberInputField");
+            rings = ringcount;
             Debug.Log("Setting up board with " + rings+ " rings");
             //Reset our list of gridpositions.
             InitialiseList();
