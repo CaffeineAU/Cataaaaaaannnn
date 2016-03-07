@@ -33,7 +33,7 @@ namespace Completed
         private Vector3 TileOffsetX;
 
         public List<Vector3> TileOffsets = new List<Vector3>();
-        public List<Vector3> BorderTileOffsets = new List<Vector3>();
+        public List<Vector4> BorderTileOffsets = new List<Vector4>();
 
         public int rings;
 
@@ -43,7 +43,7 @@ namespace Completed
         public List<GameObject> BorderTiles = new List<GameObject>();   //A list of possible locations to place players.
 
         private List<Vector3> TileLocations = new List<Vector3>();   //A list of possible locations to place players.
-        private List<Vector3> BorderTileLocations = new List<Vector3>();   //A list of possible locations to place players.
+        private List<Vector4> BorderTileLocations = new List<Vector4>();   //A list of possible locations to place players.
         private int numTiles;
 
         //Clears our list gridPositions and prepares it to generate a new board.
@@ -65,8 +65,7 @@ namespace Completed
                             {
                                 if (i == rings)
                                 {
-                                    BorderTileOffsets.Add(new Vector4(j, k, l));
-
+                                    BorderTileOffsets.Add(new Vector4(j, k, l, (Math.Abs(j) == rings && Math.Abs(l) == rings) || (Math.Abs(j) == 0 && Math.Abs(l) == rings) || (Math.Abs(j) == rings && Math.Abs(l) == 0) ? 1 : 0)); // that works out if it's a corner tile :)
                                 }
                                 else
                                 {
@@ -93,8 +92,11 @@ namespace Completed
 
             foreach (var item in BorderTileOffsets)
             {
-                Vector3 newlocation = HexCoordinateToCartesian(item, tileSideLength);
+                Vector4 newlocation = HexCoordinateToCartesian(item, tileSideLength);
+                newlocation.w = item.w;
                 BorderTileLocations.Add(newlocation);
+
+
                 Debug.Log("Added Border location " + newlocation);
             }
 
@@ -121,27 +123,39 @@ namespace Completed
                 GameObject toInstantiate = Tiles[Random.Range(0, Tiles.Count)];
 
                 //Instantiate the GameObject instance using the prefab chosen for toInstantiate at the Vector3 corresponding to current grid position in loop, cast it to GameObject.
-                GameObject instance =
-                    Instantiate(toInstantiate, location, Quaternion.identity) as GameObject;
-                Debug.Log("Added tile " + toInstantiate.name + " at " + location.ToString());
+                GameObject instance = Instantiate(toInstantiate, location, Quaternion.identity) as GameObject;
+                //Debug.Log("Added tile " + toInstantiate.name + " at " + location.ToString());
+
                 //Set the parent of our newly instantiated object instance to boardHolder, this is just organizational to avoid cluttering hierarchy.
                 instance.transform.SetParent(boardHolder);
             }
 
-            //foreach (Vector3 location in BorderTileLocations)
-            //{
-            //    float angle = Quaternion.FromToRotation(Vector3.back, location).eulerAngles.y;
-            //    Debug.Log("Location is " + location + " Angle is " + angle);
+            float angle = 0;
 
-            //    GameObject toInstantiate = BorderTiles[(int)(angle / 60f)% BorderTiles.Count];
+            foreach (Vector4 location in BorderTileLocations)
+            {
+                GameObject toInstantiate = BorderTiles[0];
+                angle = Quaternion.FromToRotation(-Vector3.right, location).eulerAngles.y;
+                Debug.Log("Location is " + location + " Angle was " + angle);
 
-            //    //Instantiate the GameObject instance using the prefab chosen for toInstantiate at the Vector3 corresponding to current grid position in loop, cast it to GameObject.
-            //    GameObject instance =
-            //        Instantiate(toInstantiate, location, Quaternion.identity) as GameObject;
-            //    Debug.Log("Added border tile " + toInstantiate.name + " at " + location.ToString());
-            //    //Set the parent of our newly instantiated object instance to boardHolder, this is just organizational to avoid cluttering hierarchy.
-            //    instance.transform.SetParent(boardHolder);
-            //}
+                if (location.w == 1) // corner
+                {
+                    toInstantiate = BorderTiles[1];
+
+                }
+                else // not a corner
+                {
+                    angle = Mathf.FloorToInt(angle /60)*60 + 30;
+                }
+                Debug.Log("Angle is now " + angle);
+
+                //Instantiate the GameObject instance using the prefab chosen for toInstantiate at the Vector3 corresponding to current grid position in loop, cast it to GameObject.
+                GameObject instance = Instantiate(toInstantiate, location, Quaternion.AngleAxis(angle, Vector3.up)) as GameObject;
+                //Debug.Log("Added border tile " + toInstantiate.name + " at " + location.ToString() + " angle " + angle);
+
+                //Set the parent of our newly instantiated object instance to boardHolder, this is just organizational to avoid cluttering hierarchy.
+                instance.transform.SetParent(boardHolder);
+            }
 
         }
 
