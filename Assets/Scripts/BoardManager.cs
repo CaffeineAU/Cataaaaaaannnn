@@ -41,6 +41,7 @@ namespace Completed
         private Transform boardHolder;                                          //A variable to store a reference to the transform of our Board object.
         public List<GameObject> Tiles = new List<GameObject>();   //A list of possible locations to place players.
         public List<GameObject> BorderTiles = new List<GameObject>();   //A list of possible locations to place players.
+        public List<GameObject> CornerBorderTiles = new List<GameObject>();   //A list of possible locations to place players.
 
         private List<Vector3> TileLocations = new List<Vector3>();   //A list of possible locations to place players.
         private List<Vector4> BorderTileLocations = new List<Vector4>();   //A list of possible locations to place players.
@@ -134,13 +135,13 @@ namespace Completed
 
             foreach (Vector4 location in BorderTileLocations)
             {
-                GameObject toInstantiate = BorderTiles[0];
+                GameObject toInstantiate = BorderTiles[Random.Range(1, BorderTiles.Count)];
                 angle = Quaternion.FromToRotation(-Vector3.right, location).eulerAngles.y;
                 Debug.Log("Location is " + location + " Angle was " + angle);
 
                 if (location.w == 1) // corner
                 {
-                    toInstantiate = BorderTiles[1];
+                    toInstantiate = CornerBorderTiles[Random.Range(1, CornerBorderTiles.Count)];
 
                 }
                 else // not a corner
