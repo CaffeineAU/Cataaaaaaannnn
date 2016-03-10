@@ -47,6 +47,10 @@ namespace Completed
         private List<Vector4> BorderTileLocations = new List<Vector4>();   //A list of possible locations to place players.
         private int numTiles;
 
+        Ray ray;
+        RaycastHit hit;
+
+
         //Clears our list gridPositions and prepares it to generate a new board.
         void InitialiseList()
         {

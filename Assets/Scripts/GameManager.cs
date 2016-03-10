@@ -18,7 +18,7 @@ namespace Completed
 
         public static int RingNumber;
         public int PlayerAppearance;
-
+      
 
         public void OnEnable()
         {
